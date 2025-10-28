@@ -2,9 +2,6 @@ import streamlit as st
 import yfinance as yf
 import matplotlib.pyplot as plt
 
-#Récupération des données sur 1 mois
-historique=action.history(period="1mo")
-
 # Dictionnaires de tickers et descriptions
 tickers = {
     "Tech": ["STM", "SOI.PA", "MSFT", "NVDA", "ARM"],
@@ -61,6 +58,10 @@ if st.button("Afficher les infos"):
 
         st.error(f"Erreur : {str(e)}")
 
+
+#Récupération des données sur 1 mois
+historique=action.history(period="1mo")
+
 if not historique.empty:
     fig, ax = plt.subplots()
     ax.plot(historique.index, historique["Close"], marker="o", linestyle="-", color="blue")
@@ -71,5 +72,6 @@ if not historique.empty:
     st.pyplot(fig)
 else:
     st.warning("Pas de données disponibles pour ce ticker sur 1 mois.")
+
 
 
