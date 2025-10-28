@@ -73,5 +73,13 @@ if not historique.empty:
 else:
     st.warning("Pas de données disponibles pour ce ticker sur 1 mois.")
 
+#Récupération des données
+st.dataframe(historique[["Close"]])
+st.download_button(
+    label="📥 Télécharger les données (CSV)",
+    data=historique.to_csv().encode("utf-8"),
+    file_name=f"{ticker}_1mo.csv",
+    mime="text/csv"
+)
 
 
