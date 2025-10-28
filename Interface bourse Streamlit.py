@@ -82,4 +82,30 @@ st.download_button(
     mime="text/csv"
 )
 
+# Bouton pour afficher le graphique sur 2 ans
+if st.button("Afficher le graphique sur 2 ans"):
+    try:
+        historique_2ans = yf.Ticker(ticker).history(period="2y")
+        if not historique_2ans.empty:
+            historique_2ans["Moyenne mobile 50j"] = historique_2ans["Close"].rolling(window=50).mean()
+            fig, ax = plt.subplots()
+            ax.plot(historique_2ans.index, historique_2ans["Close"], label="Cours de clôture", color="green")
+            ax.plot(historique_2ans.index, historique_2ans["Moyenne mobile 50j"], label="Moyenne mobile 50j", color="orange")
+            ax.set_title(f"Évolution du cours de {ticker} – 2 ans")
+            ax.set_xlabel("Date")
+            ax.set_ylabel("Cours (€)")
+            ax.grid(True)
+            ax.legend()
+            st.pyplot(fig)
+        else:
+            st.warning("Pas de données disponibles pour ce ticker sur 2 ans.")
+    except Exception as e:
+        st.error(f"Erreur lors de la récupération des données : {str(e)}")
 
+#Bouton d'export CSV
+st.download_button(
+                label="📥 Télécharger les données (CSV)",
+                data=historique_2ans.to_csv().encode("utf-8"),
+                file_name=f"{ticker}_2ans.csv",
+                mime="text/csv"
+            )
