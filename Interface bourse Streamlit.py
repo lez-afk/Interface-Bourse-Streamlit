@@ -31,81 +31,67 @@ descriptions_tick = {
     "EDF": "EDF - électricité, nucléaire, renouvelables"
 }
 
+#Barre lattérale
+st.sidebar.title("Options")
+secteur = st.sidebar.selectbox("Secteur :", list(tickers.keys()))
+ticker = st.sidebar.selectbox("Ticker :", tickers[secteur])
+affichage = st.sidebar.radio("Affichage :", ["Infos", "Graphique 1 mois", "Graphique 2 ans", "Tableau 2 ans"])
+
 # Interface Streamlit
 st.title("Interface bourse")
-
-# Sélection du secteur
-secteur = st.selectbox("Choisis un secteur :", list(tickers.keys()))
+st.write(f"**Secteur sélectionné** : {secteur}")
 st.write(f"**Description du secteur** : {descriptions.get(secteur)}")
+st.write(f"**Cours sélectionné** : {ticker}")
+st.write(f"**Description du cours** : {descriptions_tick.get(ticker)}")
 
-# Sélection du ticker
-ticker = st.selectbox("Choisis un ticker :", tickers[secteur])
-st.write(f"**Description du ticker** : {descriptions_tick.get(ticker)}")
+action=yf.Ticker(ticker)
 
-# Affichage des infos
-if st.button("Afficher les infos"):
+# Affichage selon l’option choisie
+if affichage == "Infos":
     try:
-        action = yf.Ticker(ticker)
         data = action.history(period="1d")
         open_price = data["Open"].iloc[-1]
         close_price = data["Close"].iloc[-1]
         variation_pct = ((close_price - open_price) / open_price) * 100
         dividende = action.info.get("dividendRate", None)
 
-        st.metric(label="Cours actuel", value=f"{close_price:.2f} €", delta=f"{variation_pct:.2f} %")
+        st.metric("Cours actuel", f"{close_price:.2f} €", f"{variation_pct:.2f} %")
         st.write(f"**Dividende annuel** : {dividende:.2f} €" if dividende else "Pas de dividende")
     except Exception as e:
-
         st.error(f"Erreur : {str(e)}")
 
+elif affichage == "Graphique 1 mois":
+    historique = action.history(period="1mo")
+    if not historique.empty:
+        fig, ax = plt.subplots()
+        ax.plot(historique.index, historique["Close"], color="blue")
+        ax.set_title(f"{ticker} – 1 mois")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Cours (€)")
+        ax.grid(True)
+        st.pyplot(fig)
 
-#Récupération des données sur 1 mois
-historique=action.history(period="1mo")
+elif affichage == "Graphique 2 ans":
+    historique = action.history(period="2y")
+    if not historique.empty:
+        historique["Moyenne mobile 50j"] = historique["Close"].rolling(window=50).mean()
+        fig, ax = plt.subplots()
+        ax.plot(historique.index, historique["Close"], label="Cours", color="green")
+        ax.plot(historique.index, historique["Moyenne mobile 50j"], label="MM 50j", color="orange")
+        ax.set_title(f"{ticker} – 2 ans")
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Cours (€)")
+        ax.grid(True)
+        ax.legend()
+        st.pyplot(fig)
 
-if not historique.empty:
-    fig, ax = plt.subplots()
-    ax.plot(historique.index, historique["Close"], marker="o", linestyle="-", color="blue")
-    ax.set_title(f"Évolution du cours de {ticker} – 1 mois")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Cours de clôture (€)")
-    ax.grid(True)
-    st.pyplot(fig)
-else:
-    st.warning("Pas de données disponibles pour ce ticker sur 1 mois.")
+elif affichage == "Tableau 2 ans":
+    historique = action.history(period="2y")
+    st.dataframe(historique[["Close"]].rename(columns={"Close": "Cours de clôture"}))
+    st.download_button(
+        label="📥 Télécharger les données (CSV)",
+        data=historique.to_csv().encode("utf-8"),
+        file_name=f"{ticker}_2ans.csv",
+        mime="text/csv"
+    )
 
-#Récupération des données
-st.dataframe(historique[["Close"]])
-st.download_button(
-    label="📥 Télécharger les données (CSV)",
-    data=historique.to_csv().encode("utf-8"),
-    file_name=f"{ticker}_1mo.csv",
-    mime="text/csv"
-)
-
-# Bouton pour afficher le graphique sur 2 ans
-if st.button("Afficher le graphique sur 2 ans"):
-    try:
-        historique_2ans = yf.Ticker(ticker).history(period="2y")
-        if not historique_2ans.empty:
-            historique_2ans["Moyenne mobile 50j"] = historique_2ans["Close"].rolling(window=50).mean()
-            fig, ax = plt.subplots()
-            ax.plot(historique_2ans.index, historique_2ans["Close"], label="Cours de clôture", color="green")
-            ax.plot(historique_2ans.index, historique_2ans["Moyenne mobile 50j"], label="Moyenne mobile 50j", color="orange")
-            ax.set_title(f"Évolution du cours de {ticker} – 2 ans")
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Cours (€)")
-            ax.grid(True)
-            ax.legend()
-            st.pyplot(fig)
-        else:
-            st.warning("Pas de données disponibles pour ce ticker sur 2 ans.")
-    except Exception as e:
-        st.error(f"Erreur lors de la récupération des données : {str(e)}")
-
-#Bouton d'export CSV
-st.download_button(
-                label="📥 Télécharger les données (CSV)",
-                data=historique_2ans.to_csv().encode("utf-8"),
-                file_name=f"{ticker}_2ans.csv",
-                mime="text/csv"
-            )
