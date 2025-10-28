@@ -14,7 +14,7 @@ descriptions = {
     "Énergie": "Énergies – Hydrogène, nucléaire, renouvelables, pétrole..."
 }
 descriptions_tick = {
-    "STM.PA": "STMicroelectronics - semi-conducteurs pour auto, IoT, industrie",
+    "STM": "STMicroelectronics - semi-conducteurs pour auto, IoT, industrie",
     "SOI.PA": "Soitec - matériaux avancés pour semi-conducteurs",
     "MSFT": "Microsoft - logiciels, cloud Azure, IA",
     "NVDA": "NVIDIA Corporation - entreprise tech américaine",
@@ -56,3 +56,4 @@ if st.button("Afficher les infos"):
     except Exception as e:
 
         st.error(f"Erreur : {str(e)}")
+
