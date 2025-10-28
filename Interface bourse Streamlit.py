@@ -38,7 +38,7 @@ ticker = st.sidebar.selectbox("Ticker :", tickers[secteur])
 affichage = st.sidebar.radio("Affichage :", ["Infos", "Graphique 1 mois", "Graphique 2 ans", "Tableau 2 ans"])
 
 # Interface Streamlit
-st.title("Interface bourse")
+st.title("Checker boursier")
 st.write(f"**Secteur sélectionné** : {secteur}")
 st.write(f"**Description du secteur** : {descriptions.get(secteur)}")
 st.write(f"**Cours sélectionné** : {ticker}")
@@ -94,4 +94,5 @@ elif affichage == "Tableau 2 ans":
         file_name=f"{ticker}_2ans.csv",
         mime="text/csv"
     )
+
 
