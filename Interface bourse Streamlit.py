@@ -1,5 +1,9 @@
 import streamlit as st
 import yfinance as yf
+import matplotlib.pyplot as plt
+
+#Récupération des données sur 1 mois
+historique=action.history(period="1mo")
 
 # Dictionnaires de tickers et descriptions
 tickers = {
@@ -39,7 +43,7 @@ st.write(f"**Description du secteur** : {descriptions.get(secteur)}")
 
 # Sélection du ticker
 ticker = st.selectbox("Choisis un ticker :", tickers[secteur])
-st.write(f"**Description du secteur** : {descriptions_tick.get(ticker)}")
+st.write(f"**Description du ticker** : {descriptions_tick.get(ticker)}")
 
 # Affichage des infos
 if st.button("Afficher les infos"):
@@ -56,4 +60,16 @@ if st.button("Afficher les infos"):
     except Exception as e:
 
         st.error(f"Erreur : {str(e)}")
+
+if not historique.empty:
+    fig, ax = plt.subplots()
+    ax.plot(historique.index, historique["Close"], marker="o", linestyle="-", color="blue")
+    ax.set_title(f"Évolution du cours de {ticker} – 1 mois")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Cours de clôture (€)")
+    ax.grid(True)
+    st.pyplot(fig)
+else:
+    st.warning("Pas de données disponibles pour ce ticker sur 1 mois.")
+
 
